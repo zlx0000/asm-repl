@@ -1,4 +1,4 @@
-A proof-of-concept interactive assembly REPL that executes user-supplied machine code by switching full CPU contexts.
+An interactive proof-of-concept assembly REPL that executes user-supplied machine code by switching full CPU contexts.
 # Runtime / Code State Transition:
 ```
 {runtime state 0}
