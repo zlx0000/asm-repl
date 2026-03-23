@@ -1,5 +1,6 @@
 An interactive assembly REPL that executes user-supplied machine code by switching full CPU contexts.
-
+# Runtime / Code State Transition:
+'''
 {runtime state 0}
 save runtime state 0:
     after %rsp is saved:
@@ -39,3 +40,4 @@ ret
                                                      movq (runtime_state.rdi), %rdi
                                                      {runtime state 0}
 {runtime state 0}<---------------------------------- ret 
+'''
