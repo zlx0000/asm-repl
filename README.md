@@ -1,4 +1,5 @@
 An interactive proof-of-concept assembly REPL that executes user-supplied machine code by switching full CPU contexts.
+build: ```make```
 # Runtime / Code State Transition:
 ```
 {runtime state 0}
