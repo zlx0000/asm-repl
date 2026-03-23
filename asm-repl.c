@@ -70,6 +70,59 @@ int gen_code(code_page *code, uint8_t * shellcode, size_t codelen)
 {
     assert(code->codelen <= code->pagelen);
 
+    /*
+    start:
+    push %rdi
+    movabs $cstate, %rdi
+    movq %rax, 8(%rdi)
+    movq %rbx, 16(%rdi)
+    movq %rcx, 24(%rdi)
+    movq %rdx, 32(%rdi)
+    movq %rsi, 40(%rdi)
+    movq %rsp, 56(%rdi)
+    movq %rbp, 64(%rdi)
+    movq %r8, 72(%rdi)
+    movq %r9, 80(%rdi)
+    movq %r10, 88(%rdi)
+    movq %r11, 96(%rdi)
+    movq %r12, 104(%rdi)
+    movq %r13, 112(%rdi)
+    movq %r14, 120(%rdi)
+    movq %r15, 128(%rdi)
+    lea start(%rip), %rax
+    movq %rax, 136(%rdi)
+    pushfq
+    movq (%rsp), %rax
+    movq %rax, (%rdi)
+    addq $8, 56(%rdi)
+    popfq
+    pop 48(%rdi)
+
+    movabs $rstate, %rdi
+    movq 16(%rdi), %rbx
+    movq 24(%rdi), %rcx
+    movq 32(%rdi), %rdx
+    movq 40(%rdi), %rsi
+    movq 64(%rdi), %rbp
+    movq 72(%rdi), %r8
+    movq 80(%rdi), %r9
+    movq 88(%rdi), %r10
+    movq 96(%rdi), %r11
+    movq 104(%rdi), %r12
+    movq 112(%rdi), %r13
+    movq 120(%rdi), %r14
+    movq 128(%rdi), %r15
+    lea -8(%rsp), %rsp
+    movq 0(%rdi), %rax
+    movq %rax, (%rsp)
+    popfq
+    movq 56(%rdi), %rsp
+    movq 8(%rdi), %rax
+    push 136(%rdi)
+    movq 48(%rdi), %rdi
+    ret
+    */
+
     static uint8_t epilogue[] = {
         0x57,
 
