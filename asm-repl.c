@@ -71,7 +71,6 @@ int gen_code(code_page *code, uint8_t * shellcode, size_t codelen)
     assert(code->codelen <= code->pagelen);
 
     static uint8_t epilogue[] = {
-        //0xcc,
         0x57,
 
         0x48,0xbf, 0x00,0x00,0x00,0x00,0x00,
