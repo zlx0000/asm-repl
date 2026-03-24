@@ -28,8 +28,11 @@ typedef struct {
     __uint64_t rip;
 } State;
 
-__attribute__((section(".state"))) static State cstate;
-__attribute__((section(".state"))) static State rstate;
+static State cstate;
+static State rstate;
+
+static char l[49152];
+static uint8_t shellcode[16304];
 
 typedef struct {
     uint8_t *addr;
@@ -268,8 +271,6 @@ int enter_code(char* line, uint8_t *code)
 
 int main(int argc, char **argv)
 {
-    char l[4096];
-    uint8_t shellcode[1024];
     int codelen;
 
     void *cstack = malloc(8448 * sizeof(char));
