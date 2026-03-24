@@ -34,3 +34,46 @@ c7 44 24 0c 0a 00 00 00
 
 single line:
 4d 31 c0 49 81 c0 40 42 0f 00 48 31 c0 0f a2 c7 44 24 0c 0a 00 00 00 89 4c 24 08 89 54 24 04 89 1c 24 48 c7 c0 01 00 00 00 48 c7 c7 01 00 00 00 48 89 e6 48 c7 c2 0d 00 00 00 0f 05 49 ff c8 4d 85 c0 75 c6
+
+mov $57, %rax
+syscall
+test %rax, %rax
+jne end
+xor %rax, %rax
+push %rax
+mov $0x736C2F6E69622F, %rbx
+push %rbx
+mov %rsp, %rdi
+push %rax
+push %rdi
+mov %rsp, %rsi
+xor %rdx, %rdx
+mov $59, %rax
+syscall
+mov $60, %rax
+xor %rdi, %rdi
+syscall
+end:
+
+48 c7 c0 39 00 00 00
+0f 05
+48 85 c0
+75 2f
+48 31 c0
+50
+48 bb 2f 62 69 6e 2f
+6c 73 00
+53
+48 89 e7
+50
+57
+48 89 e6
+48 31 d2
+48 c7 c0 3b 00 00 00
+0f 05
+48 c7 c0 3c 00 00 00
+48 31 ff
+0f 05
+
+single lile:
+48 c7 c0 39 00 00 00 0f 05 48 85 c0 75 2f 48 31 c0 50 48 bb 2f 62 69 6e 2f 6c 73 00 53 48 89 e7 50 57 48 89 e6 48 31 d2 48 c7 c0 3b 00 00 00 0f 05 48 c7 c0 3c 00 00 00 48 31 ff 0f 05
