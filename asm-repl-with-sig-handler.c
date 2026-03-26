@@ -367,7 +367,7 @@ repl:
         cstate = lastState;
         code.codelen = lastCode.codelen;
         code.epilogue = lastCode.epilogue;
-        printf("(%d)0x%lx>", lastSig, cstate.rip);
+        printf("(%s)0x%lx>", strsignal(lastSig), cstate.rip);
         lastSig = 0;
     }
     else
