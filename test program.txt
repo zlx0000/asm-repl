@@ -26,7 +26,7 @@ add $1000000, %r8
 loop:
 xorq %rax, %rax
 cpuid
-lea 16(%rsi), %rsi
+lea -16(%rsp), %rsp
 movl $10, 12(%rsp)
 movl %ecx, 8(%rsp)
 movl %edx, 4(%rsp)
@@ -36,14 +36,15 @@ movq $1, %rdi
 movq %rsp, %rsi
 movq $13, %rdx
 syscall
+lea 16(%rsp), %rsp
 dec %r8
 test %r8, %r8
 jne loop
 
 4d 31 c0
-49 81 c0 40 42 0f 00
-48 31 c0
+49 81 c0 40 42 0f 00 48 31 c0
 0f a2
+48 8d 64 24 f0
 c7 44 24 0c 0a 00 00 00
 89 4c 24 08
 89 54 24 04
@@ -53,12 +54,13 @@ c7 44 24 0c 0a 00 00 00
 48 89 e6
 48 c7 c2 0d 00 00 00
 0f 05
+48 8d 64 24 10
 49 ff c8
 4d 85 c0
-75 c6
+75 bc
 
 single line:
-4d 31 c0 49 81 c0 40 42 0f 00 48 31 c0 0f a2 c7 44 24 0c 0a 00 00 00 89 4c 24 08 89 54 24 04 89 1c 24 48 c7 c0 01 00 00 00 48 c7 c7 01 00 00 00 48 89 e6 48 c7 c2 0d 00 00 00 0f 05 49 ff c8 4d 85 c0 75 c6
+4d 31 c0 49 81 c0 40 42 0f 00 48 31 c0 0f a2 48 8d 64 24 f0 c7 44 24 0c 0a 00 00 00 89 4c 24 08 89 54 24 04 89 1c 24 48 c7 c0 01 00 00 00 48 c7 c7 01 00 00 00 48 89 e6 48 c7 c2 0d 00 00 00 0f 05 48 8d 64 24 10 49 ff c8 4d 85 c0 75 bc
 
 mov $57, %rax
 syscall
