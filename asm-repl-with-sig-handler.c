@@ -314,15 +314,15 @@ int main(int argc, char **argv)
     int codelen;
     
     memset(&sa, 0, sizeof(sa));
+    memset(&old_sa, 0, sizeof(old_sa));
     sa.sa_handler = sig_handler;
     sa.sa_flags = SA_NODEFER;
     sigemptyset(&sa.sa_mask);
 
     for (int i = 1; i < NSIG; i++) {
-        if (i == SIGSEGV || i == SIGILL || i == SIGFPE)
-            sigaction(i, &sa, NULL);
+        if (i == SIGKILL || i == SIGSTOP) continue;
+        sigaction(i, &sa, &old_sa);
     }
-    sigaction(SIGINT, NULL, &old_sa);
     
     void *cstack = malloc(8448 * sizeof(char));
     uintptr_t top = (uintptr_t)cstack + 8192;
@@ -359,7 +359,10 @@ int main(int argc, char **argv)
     SAVE_STATE(&rstate);
 
 repl:
-    sigaction(SIGINT, &old_sa, NULL);
+    for (int i = 1; i < NSIG; i++) {
+        if (i == SIGKILL || i == SIGSTOP) continue;
+        sigaction(i, &old_sa, NULL);
+    }
     if (lastSig != 0) {
         cstate = lastState;
         code.codelen = lastCode.codelen;
@@ -376,7 +379,10 @@ repl:
     lastState = cstate;
     lastCode = code;
     if (gen_code(&code, shellcode, codelen)) goto end;
-    sigaction(SIGINT, &sa, NULL);
+    for (int i = 1; i < NSIG; i++) {
+        if (i == SIGKILL || i == SIGSTOP) continue;
+        sigaction(i, &sa, NULL);
+    }
     goto run;
 
 run:
