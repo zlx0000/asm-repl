@@ -30,7 +30,7 @@ typedef struct {
 } State;
 
 static struct sigaction sa;
-struct sigaction old_sa;
+struct sigaction old_sa[NSIG];
 static State cstate;
 static State lastState;
 static State rstate;
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
 
     for (int i = 1; i < NSIG; i++) {
         if (i == SIGKILL || i == SIGSTOP) continue;
-        sigaction(i, &sa, &old_sa);
+        sigaction(i, &sa, &old_sa[i]);
     }
     
     void *cstack = malloc(8448 * sizeof(char));
@@ -361,7 +361,7 @@ int main(int argc, char **argv)
 repl:
     for (int i = 1; i < NSIG; i++) {
         if (i == SIGKILL || i == SIGSTOP) continue;
-        sigaction(i, &old_sa, NULL);
+        sigaction(i, &old_sa[i], NULL);
     }
     if (lastSig != 0) {
         cstate = lastState;
