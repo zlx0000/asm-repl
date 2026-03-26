@@ -49,7 +49,7 @@ typedef struct {
 static code_page code;
 static code_page lastCode;
 
-void sig_handler(int sig)
+void __attribute__ ((__noreturn__)) sig_handler(int sig)
 {
     lastSig = sig;
      __asm__ __volatile__ (
@@ -318,7 +318,7 @@ int main(int argc, char **argv)
     sigemptyset(&sa.sa_mask);
 
     for (int i = 1; i < NSIG; i++) {
-        if (i == SIGKILL || i == SIGSTOP)
+        if (i == SIGKILL || i == SIGSTOP || i == SIGINT || i == SIGALRM)
             continue;
 
         sigaction(i, &sa, NULL);
