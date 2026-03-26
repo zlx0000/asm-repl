@@ -361,7 +361,8 @@ int main(int argc, char **argv)
 repl:
     if (lastSig != 0) {
         cstate = lastState;
-        code = lastCode;
+        code.codelen = lastCode.codelen;
+        code.epilogue = lastCode.epilogue;
         printf("(%d)0x%lx>", lastSig, cstate.rip);
         lastSig = 0;
     }
