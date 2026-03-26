@@ -323,6 +323,11 @@ int main(int argc, char **argv)
         if (i == SIGKILL || i == SIGSTOP) continue;
         sigaction(i, &sa, &old_sa[i]);
     }
+
+    for (int i = 1; i < NSIG; i++) {
+        if (i == SIGKILL || i == SIGSTOP) continue;
+        sigaction(i, &old_sa[i], NULL);
+    }
     
     void *cstack = malloc(8448 * sizeof(char));
     uintptr_t top = (uintptr_t)cstack + 8192;
@@ -373,7 +378,7 @@ repl:
     else
         printf("0x%lx>", cstate.rip);
     fgets(l, sizeof(l), stdin);
-    if (strcmp(l, "quit\n") == 0) goto end;
+    if (strcmp(l, "quit\n") == 0 || strcmp(l, "exit\n") == 0) goto end;
     codelen = enter_code(l, shellcode);
     if (codelen <= 0) goto repl;
     lastState = cstate;
