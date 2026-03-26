@@ -49,7 +49,7 @@ typedef struct {
 static code_page code;
 static code_page lastCode;
 
-void __attribute__ ((__noreturn__)) sig_handler(int sig)
+__attribute__ ((__noreturn__)) void sig_handler(int sig)
 {
     lastSig = sig;
      __asm__ __volatile__ (
