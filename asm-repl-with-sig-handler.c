@@ -30,6 +30,7 @@ typedef struct {
 } State;
 
 static struct sigaction sa;
+struct sigaction old_sa;
 static State cstate;
 static State lastState;
 static State rstate;
@@ -318,11 +319,10 @@ int main(int argc, char **argv)
     sigemptyset(&sa.sa_mask);
 
     for (int i = 1; i < NSIG; i++) {
-        if (i == SIGKILL || i == SIGSTOP || i == SIGINT || i == SIGALRM)
-            continue;
-
-        sigaction(i, &sa, NULL);
+        if (i == SIGSEGV || i == SIGILL || i == SIGFPE)
+            sigaction(i, &sa, NULL);
     }
+    sigaction(SIGINT, NULL, &old_sa);
     
     void *cstack = malloc(8448 * sizeof(char));
     uintptr_t top = (uintptr_t)cstack + 8192;
@@ -359,6 +359,7 @@ int main(int argc, char **argv)
     SAVE_STATE(&rstate);
 
 repl:
+    sigaction(SIGINT, &old_sa, NULL);
     if (lastSig != 0) {
         cstate = lastState;
         code.codelen = lastCode.codelen;
@@ -375,6 +376,7 @@ repl:
     lastState = cstate;
     lastCode = code;
     if (gen_code(&code, shellcode, codelen)) goto end;
+    sigaction(SIGINT, &sa, NULL);
     goto run;
 
 run:
