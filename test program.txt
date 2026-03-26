@@ -1,7 +1,32 @@
+mov $0x00A21646C72, %r8
+push %r8
+mov $0x6F77206F6C6C6568, %r8
+push %r8
+mov $1, %rdi
+mov %rsp, %rsi
+mov $16, %rdx
+mov $1, %rax
+syscall
+
+49 b8 72 6c 64 21 0a 00 00 00
+41 50
+49 b8 68 65 6c 6c 6f 20 77 6f
+41 50
+48 c7 c7 01 00 00 00
+48 89 e6
+48 c7 c2 10 00 00 00
+48 c7 c0 01 00 00 00
+0f 05
+
+single line:
+49 b8 72 6c 64 21 0a 00 00 00 41 50 49 b8 68 65 6c 6c 6f 20 77 6f 41 50 48 c7 c7 01 00 00 00 48 89 e6 48 c7 c2 10 00 00 00 48 c7 c0 01 00 00 00 0f 05
+
 xorq %r8, %r8
 add $1000000, %r8
+loop:
 xorq %rax, %rax
 cpuid
+lea 16(%rsi), %rsi
 movl $10, 12(%rsp)
 movl %ecx, 8(%rsp)
 movl %edx, 4(%rsp)
@@ -13,7 +38,7 @@ movq $13, %rdx
 syscall
 dec %r8
 test %r8, %r8
-jne $-58
+jne loop
 
 4d 31 c0
 49 81 c0 40 42 0f 00
@@ -61,8 +86,7 @@ end:
 75 2f
 48 31 c0
 50
-48 bb 2f 62 69 6e 2f
-6c 73 00
+48 bb 2f 62 69 6e 2f 6c 73 00
 53
 48 89 e7
 50

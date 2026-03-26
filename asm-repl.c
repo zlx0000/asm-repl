@@ -305,12 +305,12 @@ int main(int argc, char **argv)
     cstate.rip = (uint64_t)code.addr;
     SAVE_STATE(&rstate);
 
-encore:
+repl:
     printf("0x%lx>", cstate.rip);
     fgets(l, sizeof(l), stdin);
     if (strcmp(l, "quit\n") == 0) goto end;
     codelen = enter_code(l, shellcode);
-    if (codelen <= 0) goto encore;
+    if (codelen <= 0) goto repl;
     if (gen_code(&code, shellcode, codelen)) goto end;
     goto run;
 
