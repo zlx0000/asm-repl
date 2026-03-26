@@ -52,8 +52,6 @@ static code_page lastCode;
 void sig_handler(int sig)
 {
     lastSig = sig;
-    cstate = lastState;
-    code = lastCode;
      __asm__ __volatile__ (
         "movq 16(%0), %%rbx\n\t"
         "movq 24(%0), %%rcx\n\t"
@@ -361,8 +359,12 @@ int main(int argc, char **argv)
     SAVE_STATE(&rstate);
 
 repl:
-    if (lastSig != 0)
+    if (lastSig != 0) {
+        cstate = lastState;
+        code = lastCode;
         printf("(%d)0x%lx>", lastSig, cstate.rip);
+        lastSig = 0;
+    }
     else
         printf("0x%lx>", cstate.rip);
     fgets(l, sizeof(l), stdin);
