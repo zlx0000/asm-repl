@@ -368,12 +368,8 @@ repl:
         sigaction(i, &old_sa[i], NULL);
     }
     if (lastSig != 0) {
-        if (lastSig == SIGINT)
-            cstate.rip = (uint64_t)code.epilogue;
-        else {
-            code.codelen = lastCode.codelen;
-            code.epilogue = lastCode.epilogue;
-        }
+        code.codelen = lastCode.codelen;
+        code.epilogue = lastCode.epilogue;
         printf("(%s)0x%lx>", strsignal(lastSig), cstate.rip);
         lastSig = 0;
     }
