@@ -32,7 +32,6 @@ typedef struct {
 static struct sigaction sa;
 struct sigaction old_sa[NSIG];
 static State cstate;
-static State lastState;
 static State rstate;
 
 static char l[49152];
@@ -369,9 +368,12 @@ repl:
         sigaction(i, &old_sa[i], NULL);
     }
     if (lastSig != 0) {
-        cstate = lastState;
-        code.codelen = lastCode.codelen;
-        code.epilogue = lastCode.epilogue;
+        if (lastSig == SIGINT)
+            cstate.rip = (uint64_t)code.epilogue;
+        else {
+            code.codelen = lastCode.codelen;
+            code.epilogue = lastCode.epilogue;
+        }
         printf("(%s)0x%lx>", strsignal(lastSig), cstate.rip);
         lastSig = 0;
     }
@@ -381,7 +383,6 @@ repl:
     if (strcmp(l, "quit\n") == 0 || strcmp(l, "exit\n") == 0) goto end;
     codelen = enter_code(l, shellcode);
     if (codelen <= 0) goto repl;
-    lastState = cstate;
     lastCode = code;
     if (gen_code(&code, shellcode, codelen)) goto end;
     for (int i = 1; i < NSIG; i++) {
