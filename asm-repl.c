@@ -183,8 +183,10 @@ int gen_code(code_page *code, uint8_t * shellcode, size_t codelen)
         0xc3
     };
 
-    *(uint64_t *)(epilogue + 3) = (uint64_t)&cstate; //patch the address.
-    *(uint64_t *)(epilogue + 107) = (uint64_t)&rstate;
+    uint64_t p = (uint64_t)&cstate;  //patch the address.
+    memcpy(epilogue + 3, &p, sizeof(p));
+    p = (uint64_t)&rstate;
+    memcpy(epilogue + 107, &p, sizeof(p));
     size_t pagesize = sysconf(_SC_PAGESIZE);
     if (code->addr == NULL) {
         code->codelen = sizeof(epilogue);
