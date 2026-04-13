@@ -377,7 +377,10 @@ repl:
     }
     else
         printf("0x%lx>", cstate.rip);
-    fgets(l, sizeof(l), stdin);
+    if (!fgets(l, sizeof(l), stdin)) {
+        printf("\n");
+        goto end;
+    }
     if (strcmp(l, "quit\n") == 0 || strcmp(l, "exit\n") == 0) goto end;
     codelen = enter_code(l, shellcode);
     if (codelen <= 0) goto repl;
