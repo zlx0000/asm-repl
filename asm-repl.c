@@ -31,7 +31,7 @@ typedef struct {
 static State cstate;
 static State rstate;
 
-static char l[49152];
+static char r[49152];
 static uint8_t shellcode[16304];
 
 typedef struct {
@@ -246,9 +246,9 @@ int gen_code(code_page *code, uint8_t * shellcode, size_t codelen)
     : "%rax", "memory"          \
     );                          \
 
-int enter_code(char* line, uint8_t *code)
+int enter_code(char* row, uint8_t *code)
 {
-    char *pl = line;
+    char *pl = row;
     uint8_t *pc = code;
     int len = 0;
 
@@ -309,12 +309,12 @@ int main(int argc, char **argv)
 
 repl:
     printf("0x%lx>", cstate.rip);
-    if (!fgets(l, sizeof(l), stdin)) {
+    if (!fgets(r, sizeof(r), stdin)) {
         printf("\n");
         goto end;
     }
-    if (strcmp(l, "quit\n") == 0 || strcmp(l, "exit\n") == 0) goto end;
-    codelen = enter_code(l, shellcode);
+    if (strcmp(r, "quit\n") == 0 || strcmp(r, "exit\n") == 0) goto end;
+    codelen = enter_code(r, shellcode);
     if (codelen <= 0) goto repl;
     if (gen_code(&code, shellcode, codelen)) goto end;
     goto run;
