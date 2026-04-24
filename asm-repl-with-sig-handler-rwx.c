@@ -425,7 +425,7 @@ run:
     __builtin_unreachable();
 
 end:
-    munmap(code.addr, code.pagelen);
+    munmap(code.addr, 4ULL * 1024 * 1024 * 1024);
     free(cstack);
     return 0;
 }
