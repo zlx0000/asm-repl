@@ -5,7 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include<assert.h>
+#include <assert.h>
+#include <stdbool.h>
 
 typedef struct {
     __uint64_t flags;
@@ -274,6 +275,7 @@ int enter_code(char* row, uint8_t *code)
 int main(int argc, char **argv)
 {
     int codelen;
+    bool def = false;
 
     void *cstack = malloc(8448 * sizeof(char));
     uintptr_t top = (uintptr_t)cstack + 8192;
@@ -314,10 +316,27 @@ repl:
         goto end;
     }
     if (strcmp(r, "quit\n") == 0 || strcmp(r, "exit\n") == 0) goto end;
+    if (strcmp(r, "def\n") == 0) {
+        if (def)
+            printf("ignored.\n");
+        def = true;
+        goto repl;
+    }
+    if (strcmp(r, "enddef\n") == 0) {
+        if (!def)
+            printf("ignored.\n");
+        def = false;
+        goto repl;
+    }
     codelen = enter_code(r, shellcode);
     if (codelen <= 0) goto repl;
     if (gen_code(&code, shellcode, codelen)) goto end;
-    goto run;
+    if (!def)
+        goto run;
+    else {
+        cstate.rip = (uint64_t)code.epilogue;
+        goto repl;
+    }
 
 run:
     __asm__ __volatile__ (

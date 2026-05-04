@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <assert.h>
 #include <signal.h>
+#include <stdbool.h>
 
 typedef struct {
     __uint64_t flags;
@@ -313,6 +314,7 @@ int enter_code(char* row, uint8_t *code)
 int main(int argc, char **argv)
 {
     int codelen;
+    bool def = false;
     
     memset(&sa, 0, sizeof(sa));
     memset(&old_sa, 0, sizeof(old_sa));
@@ -382,15 +384,32 @@ repl:
         goto end;
     }
     if (strcmp(r, "quit\n") == 0 || strcmp(r, "exit\n") == 0) goto end;
+    if (strcmp(r, "def\n") == 0) {
+        if (def)
+            printf("ignored.\n");
+        def = true;
+        goto repl;
+    }
+    if (strcmp(r, "enddef\n") == 0) {
+        if (!def)
+            printf("ignored.\n");
+        def = false;
+        goto repl;
+    }
     codelen = enter_code(r, shellcode);
     if (codelen <= 0) goto repl;
     lastCode = code;
     if (gen_code(&code, shellcode, codelen)) goto end;
-    for (int i = 1; i < NSIG; i++) {
-        if (i == SIGKILL || i == SIGSTOP) continue;
-        sigaction(i, &sa, NULL);
+    if (!def) {
+        for (int i = 1; i < NSIG; i++) {
+            if (i == SIGKILL || i == SIGSTOP) continue;
+            sigaction(i, &sa, NULL);
+        }
+        goto run;
+    } else {
+        cstate.rip = (uint64_t)code.epilogue;
+        goto repl;
     }
-    goto run;
 
 run:
     __asm__ __volatile__ (
