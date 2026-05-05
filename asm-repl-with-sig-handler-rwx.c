@@ -238,7 +238,6 @@ int gen_code(code_page *code, uint8_t * shellcode, size_t codelen)
         code->epilogue = code->addr;
         memcpy(code->epilogue, epilogue, sizeof(epilogue));
         return 0;
-        //return mprotect(code->addr, code->pagelen, PROT_READ | PROT_WRITE | PROT_EXEC);
     } else {
         if (mprotect(code->addr, code->pagelen, PROT_READ | PROT_WRITE | PROT_EXEC) != 0) return -1;
         size_t newSize = code->codelen + codelen;
@@ -252,7 +251,6 @@ int gen_code(code_page *code, uint8_t * shellcode, size_t codelen)
         code->epilogue += codelen;
         memcpy(code->epilogue, epilogue, sizeof(epilogue));
         return 0;
-        //return mprotect(code->addr, code->pagelen, PROT_READ | PROT_WRITE | PROT_EXEC);
     }
 }
 
