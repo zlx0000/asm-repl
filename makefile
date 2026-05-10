@@ -13,5 +13,14 @@ a.out: asm-repl.c
 test: asm-repl.c
 	gcc ./asm-repl.c -o ./test && strip ./test
 
+testlexer.o: testlexer.c parser.h lexer.h
+	gcc -c ./testlexer.c -o ./testlexer.o -g
 
-#-Wl,-T,link.ld
+lexer.o: lexer.c parser.h lexer.h
+	gcc -c ./lexer.c -o ./lexer.o -g
+
+parser.o: parser.c parser.h lexer.h
+	gcc -c ./parser.c -o ./parser.o -g
+
+testlexer: testlexer.o lexer.o parser.o
+	gcc ./testlexer.o ./lexer.o ./parser.o -o testlexer -g

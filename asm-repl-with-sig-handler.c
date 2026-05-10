@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <signal.h>
 #include <stdbool.h>
+#include "lexer.h"
 
 typedef struct {
     __uint64_t flags;

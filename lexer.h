@@ -1,0 +1,134 @@
+#include <stdint.h>
+
+#define MAX_TOKEN 25600
+#define BFSIZE 256
+
+#define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
+#define IS_ALPHA(c)                                                              \
+	(((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z') || (c) == '_')
+#define IS_SPACE(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r')
+#define IS_CHAR(c) (IS_ALPHA(c) || IS_DIGIT(c) || (c) == '_')
+#define IS_QUOT(c) ((c) == '"' || (c) == '\'')
+#define IS_SYMBOL(c)                                                             \
+	((c) == '+' || (c) == '-' || (c) == '*' || (c) == '/' || (c) == '^' ||       \
+	(c) == '=' || (c) == '<' || (c) == '>' || (c) == '&' || (c) == '|' ||        \
+	(c) == '$' || (c) == '%' || (c) == '.' || (c) == ',' || (c) == ';' ||        \
+	IS_QUOT(c) || IS_PAREN(c))
+#define IS_OP(c)                                                                 \
+	((c) == '+' || (c) == '-' || (c) == '*' || (c) == '/')
+
+#define IS_EOL(c) ((c) == '\0')
+
+typedef enum { //the order of which reflects the precedence.
+	TOKEN_TYPE_NULL = 0,
+	OP_TOKEN,
+    REG_TOKEN,
+	NUM_TOKEN,
+	IMM_TOKEN,
+    COMMA_TOKEN,
+    PAREN_TOKEN,
+    CPAREN_TOKEN,
+    SPACE_TOKEN,
+    TOKEN_TYPE_END
+} TokenType;
+
+typedef enum {
+	MISMATCH,
+	PENDING,
+	MATCH
+} DFA_state;
+
+typedef enum {
+	NULL_OP = 0,
+	MOV, MOVB, MOVW, MOVL, MOVQ, MOVABS, MOVBE, MOVBEW,
+	MOVBEL, MOVBEQ, MOVS, MOVSB, MOVSW, MOVSL, MOVSQ, MOVSX,
+	MOVSXB, MOVSXW, MOVSXL, MOVSBW, MOVSBL, MOVSBQ, MOVSWL, MOVSWQ,
+	MOVSLQ, MOVZX, MOVZXB, MOVZXW, MOVZXL, MOVZBW, MOVZBL, MOVZBQ,
+	MOVZWL, MOVZWQ, ADD, ADDB, ADDW, ADDL, ADDQ, ADC,
+	ADCB, ADCW, ADCL, ADCQ, SUB, SUBB, SUBW, SUBL,
+	SUBQ, SBB, SBBB, SBBW, SBBL, SBBQ, MUL, MULB,
+	MULW, MULL, MULQ, IMUL, IMULB, IMULW, IMULL, IMULQ,
+	DIV, DIVB, DIVW, DIVL, DIVQ, IDIV, IDIVB, IDIVW,
+	IDIVL, IDIVQ, INC, INCB, INCW, INCL, INCQ, DEC,
+	DECB, DECW, DECL, DECQ, NEG, NEGB, NEGW, NEGL,
+	NEGQ, CMP, CMPB, CMPW, CMPL, CMPQ, TEST, TESTB,
+	TESTW, TESTL, TESTQ, AND, ANDB, ANDW, ANDL, ANDQ,
+	OR, ORB, ORW, ORL, ORQ, XOR, XORB, XORW,
+	XORL, XORQ, NOT, NOTB, NOTW, NOTL, NOTQ, SHL,
+	SHLB, SHLW, SHLL, SHLQ, SHR, SHRB, SHRW, SHRL,
+	SHRQ, SAL, SALB, SALW, SALL, SALQ, SAR, SARB,
+	SARW, SARL, SARQ, ROL, ROLB, ROLW, ROLL, ROLQ,
+	ROR, RORB, RORW, RORL, RORQ, RCL, RCLB, RCLW,
+	RCLL, RCLQ, RCR, RCRB, RCRW, RCRL, RCRQ, SHLD,
+	SHLDW, SHLDL, SHLDQ, SHRD, SHRDW, SHRDL, SHRDQ, BT,
+	BTW, BTL, BTQ, BTC, BTCW, BTCL, BTCQ, BTR,
+	BTRW, BTRL, BTRQ, BTS, BTSW, BTSL, BTSQ, BSF,
+	BSFW, BSFL, BSFQ, BSR, BSRW, BSRL, BSRQ, BSWAP,
+	LZCNT, LZCNTW, LZCNTL, LZCNTQ, TZCNT, TZCNTW, TZCNTL, TZCNTQ,
+	POPCNT, POPCNTW, POPCNTL, POPCNTQ, JMP, JMPW, JMPL, JMPQ,
+	CALL, CALLW, CALLL, CALLQ, RET, RETW, RETL, RETQ,
+	JA, JAE, JB, JBE, JC, JE, JG, JGE,
+	JL, JLE, JNA, JNAE, JNB, JNBE, JNC, JNE,
+	JNG, JNGE, JNL, JNLE, JNO, JNP, JNS, JNZ,
+	JO, JP, JPE, JPO, JS, JZ, JCXZ, JECXZ,
+	JRCXZ, LOOP, LOOPE, LOOPNE, LOOPNZ, LOOPZ, SETA, SETAE,
+	SETB, SETBE, SETC, SETE, SETG, SETGE, SETL, SETLE,
+	SETNA, SETNAE, SETNB, SETNBE, SETNC, SETNE, SETNG, SETNGE,
+	SETNL, SETNLE, SETNO, SETNP, SETNS, SETNZ, SETO, SETP,
+	SETPE, SETPO, SETS, SETZ, CMOVA, CMOVAE, CMOVB, CMOVBE,
+	CMOVC, CMOVE, CMOVG, CMOVGE, CMOVL, CMOVLE, CMOVNA, CMOVNAE,
+	CMOVNB, CMOVNBE, CMOVNC, CMOVNE, CMOVNG, CMOVNGE, CMOVNL, CMOVNLE,
+	CMOVNO, CMOVNP, CMOVNS, CMOVNZ, CMOVO, CMOVP, CMOVPE, CMOVPO,
+	CMOVS, CMOVZ, PUSH, PUSHW, PUSHL, PUSHQ, POP, POPW,
+	POPL, POPQ, PUSHF, PUSHFW, PUSHFL, PUSHFQ, POPF, POPFW,
+	POPFL, POPFQ, LEA, LEAW, LEAL, LEAQ, XCHG, XCHGB,
+	XCHGW, XCHGL, XCHGQ, XADD, XADDB, XADDW, XADDL, XADDQ,
+	CMPXCHG, CMPXCHGB, CMPXCHGW, CMPXCHGL, CMPXCHGQ, CMPXCHG8B, CMPXCHG16B, NOP,
+	PAUSE, HLT, CLC, STC, CMC, CLD, STD, CLI,
+	STI, LAHF, SAHF, CWD, CDQ, CQO, CBW, CWDE,
+	CDQE, AAA, AAD, AAM, AAS, DAA, DAS, ENTER,
+	LEAVE, LEAVEW, LEAVEL, LEAVEQ, INT, INTO, IRET, IRETW,
+	IRETL, IRETQ, SYSCALL, SYSENTER, SYSEXIT, SYSRET, CPUID, RDTSC,
+	RDTSCP, RDPMC, LFENCE, MFENCE, SFENCE, LOCK, WAIT, UD2,
+	IN, INB, INW, INL, OUT, OUTB, OUTW, OUTL,
+	INS, INSB, INSW, INSL, OUTS, OUTSB, OUTSW, OUTSL,
+	LODS, LODSB, LODSW, LODSL, LODSQ, STOS, STOSB, STOSW,
+	STOSL, STOSQ, SCAS, SCASB, SCASW, SCASL, SCASQ, CMPS,
+	CMPSB, CMPSW, CMPSL, CMPSQ, XLAT, XLATB, BOUND, ARPL,
+	LAR, LSL, LGDT, LIDT, SGDT, SIDT, LLDT, SLDT,
+	LTR, STR, LMSW, SMSW, CLTS, VERR, VERW, WBINVD,
+	OP_END
+} Op;
+
+typedef enum {
+	NULL_REG, AH, AL, BH, BL, CH, CL, DH, DL,
+	SIL, DIL, BPL, SPL,
+	R8B, R9B, R10B, R11B, R12B, R13B, R14B, R15B,
+	AX, BX, CX, DX, SI, DI, BP, SP,
+	R8W, R9W, R10W, R11W, R12W, R13W, R14W, R15W,
+	EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP,
+	R8D, R9D, R10D, R11D, R12D, R13D, R14D, R15D,
+	RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP,
+	R8, R9, R10, R11, R12, R13, R14, R15,
+	IP, EIP, RIP,
+	CS, DS, ES, FS, GS, SS,
+	CR0, CR1, CR2, CR3, CR4, CR5, CR6, CR7, CR8,
+	DR0, DR1, DR2, DR3, DR4, DR5, DR6, DR7,
+	REG_END
+} Reg;
+
+typedef union {
+	int64_t numValue;
+	Reg reg;
+	Op op;
+} Literal;
+
+typedef struct {
+	TokenType type;
+	char lexeme[BFSIZE];
+	Literal literal;
+	int lineNum;
+	int colNum;
+} Token;
+
+int lexer(char *bf, Token *tokens, int lineNum);
